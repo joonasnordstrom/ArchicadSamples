@@ -808,22 +808,9 @@ void CCreateLogsDlg::UpdateProfileName()
 	if (nErr != NoError) ph::CAcadException::Throw(nErr, "Error trying to modify profile.");
 }
 
-/* PH poisti
-void CCreateLogsDlg::UpdateWallElemData()
-{
-	ph::CElemListHolder		rElems;
-	rElems.GetAll(API_WallID, 0, true);
-	//for (size_t i = 0; i < rElems.GetCount(); i++)
-	//{
-	//	rElems.GetElement()
-	//}
-}
-*/
-
 void CCreateLogsDlg::AddProfile()
 {
 	std::string rProfileName = (const char *)m_txtProfileName.GetText().ToCStr();
-	//int nDuplicateCount = 1;
 
 	if (rProfileName.empty())
 	{
@@ -1236,8 +1223,6 @@ void CCreateLogsDlg::DrawProfileList()
 	for (size_t i = 0; i < m_rProfileAttributeHandler.GetCount(); i++)
 	{
 		prCurrAttr = m_rProfileAttributeHandler.GetProfileByVecIndx(i);
-
-		//PH: Tulee assert ainakin dialogin esille otossa: assert(!prCurrAttr);
 
 		if (prCurrAttr)
 		{
@@ -2029,7 +2014,6 @@ void CLogWallHandler::BuildProfileImage(ProfileVectorImage *pVectorImage, const 
 
 		ProfileEdgeData *pProfileEdgeData = reinterpret_cast<ProfileEdgeData*>(reinterpret_cast<char*>(*addInfo) + sizeof(ProfileItem));
 
-		// PH: Oisko tämä käyttämättä?
 		pProfileEdgeData[0].SetPen(1);
 		pProfileEdgeData[0].SetLineType(1);
 		pProfileEdgeData[0].SetMaterial(1);
@@ -2065,34 +2049,11 @@ void CLogWallHandler::BuildProfileImage(ProfileVectorImage *pVectorImage, const 
 
 	VBAttr::ExtendedPen	contPen(1);
 
-	//hatchObject.syFlags = 0;
-	//hatchObject.buildMatFlags = SyHatchFlag_FillHatch | SyHatchFlag_OverrideBkgPen | SyHatchFlag_OverrideFgPen;		//  SyHatchFlag_BuildingMaterialHatch;
-	//hatchObject.fillIdx = 0;
-	//hatchObject.buildMatIdx = 1;
-	//hatchObject.fillBkgPen = 0;
-	//hatchObject.determine = 0;
-	//hatchObject.specFor3D = 0;
-	//hatchObject.sy2dRenovationStatus = 0;
-	//hatchObject.bkgColorRGB = color;
-	//hatchObject.fgColorRGB = color;
-	//hatchObject.SetDisplayOrder(1);
-	//hatchObject.origPlane = plane;
 	hatchObject.hatchTrafo = hatchTrafo;
 	hatchObject.SetAddInfo(addInfo);
 
 	if (hatchObject.CheckState())
 		HatchObject::Create(hatchType, hatchObject, true, contPen, 1, 0, DrwIndexForHatches, hatchTrafo, 1, boends, nCoords, vecCoords.data(), vecArcAngles.data(), plane, 1, 0, API_DefaultStatus, 0);
-
-	/*
-	*	Does not show the contour line - could not find a way to do that:
-	*
-	hatchObject.SetContLType(1);
-	hatchObject.SetContPen(contPen);
-	hatchObject.SetContVis(true);
-	hatchObject.GetContLType();
-	contPen = hatchObject.GetContPen();
-	hatchObject.GetContVis();
-	*/
 
 	GS::GSErrCode nErr = pVectorImage->AddHatch(hatchType, hatchObject);
 
@@ -2108,258 +2069,6 @@ void CLogWallHandler::BuildProfileImage(ProfileVectorImage *pVectorImage, const 
 		BMKillHandle(&addInfo);
 	}
 }
-
-//// -----------------------------------------------------------------------------
-////  List one profile
-//// -----------------------------------------------------------------------------
-//void CLogWallHandler::ListProfileDescription(const ProfileVectorImage& profileDescription, const GS::HashTable<PVI::ProfileParameterId, GS::UniString>& parameterNameTable)
-//{
-//	//profileDescription.ReadXML
-//	ConstProfileVectorImageIterator profileDescriptionIt(profileDescription);
-//	const GS::HashTable<GS::Guid, PVI::HatchVertexId>& associatedHotspotsTable = profileDescription.GetAssociatedHotspotsTable();
-//
-//	while (!profileDescriptionIt.IsEOI()) {
-//		switch (profileDescriptionIt->item_Typ) {
-//		case SyHots: {
-//			const Sy_HotType* pSyHot = ((const Sy_HotType*)profileDescriptionIt);
-//			//WriteReport("- Hotspot (id: %s)", pSyHot->GetUniqueId().ToUniString().ToCStr().Get());
-//			//WriteReport("-- Coordinate: %.3f, %.3f", pSyHot->c.x, pSyHot->c.y);
-//			if (associatedHotspotsTable.ContainsKey(pSyHot->GetUniqueId())) {
-//				const PVI::HatchVertexId associatedVertexId = associatedHotspotsTable[pSyHot->GetUniqueId()];
-//				//WriteReport("-- Hotspot is associated to hatch %s's %d. vertex.", associatedVertexId.GetHatchId().ToUniString().ToCStr().Get(), associatedVertexId.GetVertexIndex());
-//			}
-//		}
-//					 break;
-//
-//		case SyLine: {
-//			const Sy_LinType* pSyLine = static_cast <const Sy_LinType*> (profileDescriptionIt);
-//			//WriteReport("- Line");
-//			//WriteReport("-- Layer: %d; SpecForProfile: %d", pSyLine->sy_fragmentIdx, pSyLine->specForProfile);
-//			//WriteReport("-- From: %.3f, %.3f", pSyLine->begC.x, pSyLine->begC.y);
-//			//WriteReport("-- To  : %.3f, %.3f", pSyLine->endC.x, pSyLine->endC.y);
-//		}
-//					 break;
-//
-//		case SyHatch: {
-//			const HatchObject& syHatch = profileDescriptionIt;
-//			const ProfileItem* profileItemInfo = syHatch.GetProfileItemPtr();
-//
-//			//auto classInfo = syHatch.
-//			ph::CAcadLogWnd::AddTextFormat("- Hatch (id: %s, componentIndex: %d)", syHatch.GetUniqueId().ToUniString().ToCStr().Get(), profileDescription.GetComponentId(syHatch.GetUniqueId()));
-//			Int32 uiPriority = 0;
-//			{
-//				API_BuildingMaterialType	buildMat;
-//				BNZeroMemory(&buildMat, sizeof(API_BuildingMaterialType));
-//				buildMat.head.typeID = API_BuildingMaterialID;
-//				buildMat.head.index = syHatch.buildMatIdx;
-//				ACAPI_Attribute_Get((API_Attribute*)&buildMat);
-//				ACAPI_Goodies(APIAny_Elem2UIPriorityID, (void*)&buildMat.connPriority, &uiPriority);
-//			}
-//			ph::CAcadLogWnd::AddTextFormat("-- Priority: %d%s", uiPriority, profileItemInfo->IsCore() ? ", Core component" : "");
-//			ph::CAcadLogWnd::AddTextFormat("-- Coordinates: %ld", syHatch.GetCoords().GetSize());
-//			UInt32 index = 0;
-//			for (Coord coord : syHatch.GetCoords()) {
-//				const bool isContourEnd = index != 0 && syHatch.GetSubPolyEnds().Contains(index);
-//				ph::CAcadLogWnd::AddTextFormat("--- Coord #%-2d (%5.2f, %5.2f)%s", index++, coord.x, coord.y, isContourEnd ? " - Contour end" : "");
-//			}
-//
-//			const ProfileEdgeData*	profileEdgeData = syHatch.GetProfileEdgeDataPtr();
-//			for (UInt32 ii = 0; ii < syHatch.GetCoords().GetSize(); ii++, profileEdgeData++) {
-//				ph::CAcadLogWnd::AddTextFormat("--- Edge data #%-2d surface = %32s (%3ld) pen = (%3ld)", ii, CAttributeHelpers::GetAttributeName(API_MaterialID, profileEdgeData->GetMaterial()),
-//					profileEdgeData->GetMaterial(), profileEdgeData->GetPen());
-//			}
-//		}
-//					  break;
-//
-//		case SySpline: {
-//			const Sy_SplineType* pSySpline = static_cast <const Sy_SplineType*> (profileDescriptionIt);
-//			const API_Coord* pSyCoords = (const API_Coord*)((const char*)pSySpline + pSySpline->coorOff);
-//			const Geometry::DirType* pSyDirs = (const Geometry::DirType*) ((const char*)pSySpline + pSySpline->dirsOff);
-//			for (GSIndex ii = 0; ii < pSySpline->nCoords; ++ii) {
-//				ph::CAcadLogWnd::AddTextFormat("--- Coord #%-2d (%5.2f, %5.2f)", ii, pSyCoords[ii].x, pSyCoords[ii].y);
-//				ph::CAcadLogWnd::AddTextFormat("--- Dirs  #%-2d (%5.2f, %5.2f, %5.2f)", ii, pSyDirs[ii].lenPrev, pSyDirs[ii].lenNext, pSyDirs[ii].dirAng);
-//			}
-//		}
-//					   break;
-//
-//		case SyArc: {
-//			const Sy_ArcType* pSyArc = static_cast <const Sy_ArcType*> (profileDescriptionIt);
-//			//WriteReport("- Arc");
-//			//WriteReport("-- Layer		: %d", pSyArc->sy_fragmentIdx);
-//			//WriteReport("-- Origo		: %.3f, %.3f", pSyArc->origC.x, pSyArc->origC.y);
-//			//WriteReport("-- BegCoord	: %.3f, %.3f", pSyArc->begC.x, pSyArc->begC.y);
-//			//WriteReport("-- EndCoord	: %.3f, %.3f", pSyArc->endC.x, pSyArc->endC.y);
-//			//WriteReport("-- Radius		: %.3f", pSyArc->r);
-//		}
-//					break;
-//
-//		case SyPolyLine:
-//		case SyText:
-//		case SyPicture:
-//		case SyPixMap:
-//		case SyPointCloud:
-//			break;
-//		}
-//		++profileDescriptionIt;
-//	}
-//
-//	for (auto itPar = profileDescription.GetParameterTable().EnumeratePairs(); itPar != nullptr; ++itPar) {
-//		const PVI::ProfileParameterId& parameterId = *itPar->key;
-//		const GS::HashSet<PVI::ProfileParameterSetupId>& parDefIDs = *itPar->value;
-//		const GS::UniString parameterName = parameterNameTable[parameterId];
-//
-//		for (auto it = parDefIDs.Enumerate(); it != nullptr; ++it) {
-//			const PVI::ProfileParameterSetupId& parameterDefId = *it;
-//			const PVI::ProfileVectorImageParameter& profileParameter = profileDescription.GetParameterDef(parameterDefId);
-//
-//			//WriteReport("- ProfileParameter (id: %s, name: %s)", parameterId.ToUniString().ToCStr().Get(), parameterName.ToCStr().Get());
-//			if (profileParameter.GetType() == PVI::ProfileVectorImageParameter::ParameterType::EdgeOffset) {
-//				const PVI::EdgeOffsetParameter& edgeOffsetParameter = profileParameter.GetEdgeOffsetParameter();
-//
-//				const PVI::ProfileDimControlToolId& dimToolID = edgeOffsetParameter.GetDimControlToolID();
-//				const GS::Optional<PVI::DimensionControlTool> dimTool = profileDescription.GetDimensionControlTool(dimToolID);
-//				DBASSERT(dimTool.HasValue());
-//				const PVI::ProfileAnchorId& begAnchorID = dimTool->GetBegAnchorID();
-//				const PVI::ProfileAnchorId& endAnchorID = dimTool->GetEndAnchorID();
-//				const GS::Optional<PVI::Anchor>	begAnchor = profileDescription.GetAnchor(begAnchorID);
-//				const GS::Optional<PVI::Anchor>	endAnchor = profileDescription.GetAnchor(endAnchorID);
-//				DBASSERT(begAnchor.HasValue());
-//				DBASSERT(endAnchor.HasValue());
-//
-//				//TODO B530M2 AKARKINEK: M1 agon a begAnchor a szokasos vertex vagy fix pontos, mig az endAnchor a main edge... M2 agon ez megvaltozik!
-//				PVI::HatchEdgeId mainEdge = endAnchor->GetAssociatedEdgeId();
-//				//WriteReport("-- MainEdge: (HatchId: %s, EdgeIndex: %d, Direction: %s)", mainEdge.GetHatchId().ToUniString().ToCStr().Get(),
-//				//	mainEdge.GetEdgeIndex(),
-//				//	ProfileVectorImageOperations::ResolveEdgeDirFlag(profileDescription, mainEdge) == PVI::AssociatedEdge::DirectionFlag::Left ? "Left" : "Right");
-//				for (const PVI::AssociatedEdge& associatedEdge : edgeOffsetParameter.GetAssociatedEdges()) {
-//					//WriteReport("-- Further edges to offset: (HatchId: %s, EdgeIndex: %d, Direction: %s)", associatedEdge.GetHatchId().ToUniString().ToCStr().Get(),
-//					//	associatedEdge.GetEdgeIndex(),
-//					//	associatedEdge.GetDirectionFlag() == PVI::AssociatedEdge::DirectionFlag::Left //TODO B530M2!!!
-//					//	? "Left" : "Right");
-//				}
-//				const PVI::Anchor& anchor = begAnchor.Get(); //TODO B530M2!!!
-//
-//				if (anchor.GetAnchorType() == PVI::Anchor::AnchorType::VertexAssociative) {
-//					//WriteReport("-- Anchor is on vertex. (HatchId: %s, VertexIndex: %d", anchor.GetAssociatedVertexId().GetHatchId().ToUniString().ToCStr().Get(),
-//					//	anchor.GetAssociatedVertexId().GetVertexIndex());
-//				}
-//				else if (anchor.GetAnchorType() == PVI::Anchor::AnchorType::FixedToStretchCanvas) {
-//					//WriteReport("-- Anchor is fixed. (%.3f, %.3f)", anchor.GetFixAnchorPosition().GetX(), anchor.GetFixAnchorPosition().GetY());
-//				}
-//			}
-//			else {
-//				// other types are not supported.
-//			}
-//		}
-//	}
-//
-//	{
-//		const PVI::StretchData& stretchData = profileDescription.GetStretchData();
-//		if (stretchData.HasHorizontalZone()) {
-//			//WriteReport("- Horizontal Stretch Zone: (%.3f, %.3f)", stretchData.GetHorizontalZoneMin(), stretchData.GetHorizontalZoneMax());
-//		}
-//		if (stretchData.HasVerticalZone()) {
-//			//WriteReport("- Vertical Stretch Zone: (%.3f, %.3f)", stretchData.GetVerticalZoneMin(), stretchData.GetVerticalZoneMax());
-//		}
-//	}
-//
-//	{
-//		const PVI::EdgeOverrideData& edgeOverrideData = profileDescription.GetEdgeOverrideData();
-//		if (edgeOverrideData.GetOverrideSectionLines()) {
-//			//WriteReport("- Inner section lines overridden: LineType to %s, linePen to %s", AttributeName(API_LinetypeID, edgeOverrideData.GetInnerLineType()), AttributeName(API_PenID, edgeOverrideData.GetInnerPen()));
-//			//WriteReport("- Outer section lines overridden: LineType to %s, linePen to %s", AttributeName(API_LinetypeID, edgeOverrideData.GetOuterLineType()), AttributeName(API_PenID, edgeOverrideData.GetOuterPen()));
-//		}
-//	}
-//
-//}
-
-//GSErrCode CLogWallHandler::Do_ReadProfileWall()
-//{
-//	GS::Array<API_Guid>	inds;
-//	GSErrCode            err;
-//	API_SelectionInfo    selectionInfo;
-//	API_Element          tElem;
-//	API_Neig             **selNeigs;
-//
-//	err = ACAPI_Selection_Get(&selectionInfo, &selNeigs, true);
-//	BMKillHandle((GSHandle *)&selectionInfo.marquee.coords);
-//	if (err == APIERR_NOSEL)
-//		err = NoError;
-//
-//	if (err != NoError) {
-//		BMKillHandle((GSHandle *)&selNeigs);
-//		return err;
-//	}
-//
-//	if (selectionInfo.typeID != API_SelEmpty) {
-//		// collect indexes of selected dimensions
-//		UInt32 nSel = BMGetHandleSize((GSHandle)selNeigs) / sizeof(API_Neig);
-//		for (UInt32 ii = 0; ii < nSel && err == NoError; ++ii) {
-//			tElem.header.typeID = ph::AcadNeigToElemID((*selNeigs)[ii].neigID);
-//			if (tElem.header.typeID != API_WallID)
-//				continue;
-//
-//			if (!ACAPI_Element_Filter((*selNeigs)[ii].guid, APIFilt_IsEditable))
-//				continue;
-//
-//			tElem.header.guid = (*selNeigs)[ii].guid;
-//			if (ACAPI_Element_Get(&tElem) != NoError)
-//				continue;
-//
-//			// Add wall to the array
-//			inds.Push(tElem.header.guid);
-//		}
-//	}
-//
-//	if (inds.GetSize() > 0)
-//	{
-//		API_Element rElem, rMask;
-//		API_Attribute	attrib;
-//		API_AttributeDefExt	defs;
-//		//API_ElementMemo	rMemo;
-//
-//		BNZeroMemory(&rElem, sizeof(rElem));
-//
-//		rElem.header.typeID = API_WallID;
-//		rElem.header.guid = inds[0];
-//
-//		err = ACAPI_Element_Get(&rElem);
-//
-//		if (err != NoError) return err;
-//
-//		BNZeroMemory(&attrib, sizeof(API_Attribute));
-//		attrib.header.typeID = API_ProfileID;
-//		attrib.header.index = rElem.wall.profileAttr;
-//		err = ACAPI_Attribute_Get(&attrib);
-//		//if (attrib.profile.wallType)
-//		//{
-//		//	Do_CreateTestProfileWall(i);
-//		//}
-//		if (err == NoError) {
-//			err = ACAPI_Attribute_GetDefExt(API_ProfileID, attrib.header.index, &defs);
-//			if (err == APIERR_BADID) {
-//				BNZeroMemory(&defs, sizeof(API_AttributeDefExt));
-//				err = NoError;
-//			}
-//			if (err == NoError) {
-//				//WriteReport("\n\n****Profile name: %s", attrib.header.name);
-//				ListProfileDescription(*defs.profile_vectorImageItems, *defs.profile_vectorImageParameterNames);
-//			}
-//			ACAPI_DisposeAttrDefsHdlsExt(&defs);
-//		}
-//
-//		ACAPI_ELEMENT_MASK_CLEAR(rMask);
-//		ACAPI_ELEMENT_MASK_SET(rMask, API_WallType, profileAttr);
-//
-//		err = ACAPI_CallUndoableCommand("Create text",
-//			[&]() -> GSErrCode {
-//			return ACAPI_Element_Change(&rElem, &rMask, nullptr, 0, true);
-//		});
-//	}
-//
-//	return err;
-//}
-
 
 /*
 * Attribute helpers
